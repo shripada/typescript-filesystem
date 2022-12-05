@@ -11,6 +11,14 @@
       "program": "${file}",
       "preLaunchTask": "tsc: build - tsconfig.json",
       "outFiles": ["${workspaceFolder}/dist/**/*.js"]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Jest Tests",
+      "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
+      "args": ["-i", "--runInBand"],
+      "internalConsoleOptions": "openOnSessionStart"
     }
   ]
 }

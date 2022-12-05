@@ -2,6 +2,8 @@
  * as FileSystem, that is going to have a root folder in it for us.
  */
 
+import {assert} from 'console';
+
 /**
  * File represents the fundamental entity in a file system. This
  * forms the base class of all entities of a file system.
@@ -35,6 +37,17 @@ class CFile {
     if (this.parent !== undefined) {
       this.parent.contents = this.parent.contents.filter(file => file.name !== this.name);
       this.parent = undefined;
+    }
+  }
+
+  /**
+   * Searching of a file in the heirachy will require just the name of
+   * the file. if the passed in name matches this file, we will return
+   * this file, otherwise we return undefined.
+   */
+  search(relativePath: string): CFile | undefined {
+    if (this.name.toLowerCase() === relativePath.toLowerCase()) {
+      return this;
     }
   }
 }
@@ -94,6 +107,7 @@ class CFolder extends CFile {
     if (force || this.contents.length === 0) {
       canDeleteImmediately = true;
     }
+    // Guarding the root deletion
     if (this.parent === undefined) {
       canDeleteImmediately = false;
     }
@@ -105,6 +119,29 @@ class CFolder extends CFile {
       // which do not have any contents in them.
       // files on the other hand can be deleted right away.
       throw new Error(`Folder ${this.path()} can not be deleted as it is not empty or it is root folder itself!`);
+    }
+  }
+
+  /** we want to support a depth first search in the folder heirarchy */
+  search(relativePath: string): CFile | undefined {
+    // First we need to get first path component
+    const pathComponents = relativePath.split('/');
+    expect(pathComponents.length).toBeGreaterThanOrEqual(1);
+    if (this.name.toLowerCase() === pathComponents[0].toLowerCase()) {
+      // Get the subpath sans the current folder. That will be
+      // the relative path down the heirarchy
+      pathComponents.shift();
+      if (pathComponents.length === 0) {
+        return this;
+      }
+      const subComponents = pathComponents;
+      const subPath = subComponents.join('/');
+      for (const content of this.contents) {
+        const searchResult = content.search(subPath);
+        if (searchResult !== undefined) {
+          return searchResult;
+        }
+      }
     }
   }
 }
